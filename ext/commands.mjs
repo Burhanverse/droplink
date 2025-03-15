@@ -43,6 +43,7 @@ export function registerCommands(bot) {
         }
     });
 
+    // Handle URL messages
     bot.on('message:text', async (ctx) => {
         if (ctx.state.detectedUrl) {
             if (!ctx.state.apiKey) {
@@ -55,11 +56,21 @@ export function registerCommands(bot) {
                 return ctx.reply('Invalid URL detected. Please try again.');
             }
 
-            await ctx.reply('Do you want to add a custom alias? Reply with the alias or "no".');
-
             ctx.session.pendingUrl = url;
+
+            // Create inline keyboard with Yes/No options for custom alias
+            await ctx.reply('Do you want to add a custom alias?', {
+                reply_markup: {
+                    inline_keyboard: [
+                        [
+                            { text: "Yes", callback_data: "alias_yes" },
+                            { text: "No", callback_data: "alias_no" }
+                        ]
+                    ]
+                }
+            });
+
         } else if (ctx.session?.pendingUrl) {
-            // Handle alias response
             const alias = ctx.message.text.trim() === 'no' ? null : ctx.message.text.trim();
             const url = ctx.session.pendingUrl;
 
@@ -73,8 +84,56 @@ export function registerCommands(bot) {
                 await ctx.reply(`Failed to shorten URL: ${result.error}`);
             }
 
-            // Clear the pending URL
             delete ctx.session.pendingUrl;
         }
     });
+
+    // Handle inline keyboard callbacks
+    bot.callbackQuery("alias_yes", async (ctx) => {
+        await ctx.answerCallbackQuery();
+        await ctx.reply("Please enter your custom alias:");
+        ctx.session.awaitingAlias = true;
+    });
+
+    bot.callbackQuery("alias_no", async (ctx) => {
+        await ctx.answerCallbackQuery();
+
+        const url = ctx.session.pendingUrl;
+        if (!url) {
+            return ctx.reply("Sorry, your URL was not found. Please send it again.");
+        }
+
+        await ctx.reply('Shortening URL without custom alias, please wait...');
+
+        const result = await shortenUrl(ctx.state.apiKey, url, null);
+
+        if (result.success) {
+            await ctx.reply(`Here's your shortened URL: ${result.shortUrl}`);
+        } else {
+            await ctx.reply(`Failed to shorten URL: ${result.error}`);
+        }
+
+        delete ctx.session.pendingUrl;
+    });
+
+    // Handle alias input after user clicked "Yes"
+    bot.on('message:text', async (ctx) => {
+        if (ctx.session?.awaitingAlias && ctx.session?.pendingUrl) {
+            const alias = ctx.message.text.trim();
+            const url = ctx.session.pendingUrl;
+
+            await ctx.reply('Shortening URL with custom alias, please wait...');
+
+            const result = await shortenUrl(ctx.state.apiKey, url, alias);
+
+            if (result.success) {
+                await ctx.reply(`Here's your shortened URL: ${result.shortUrl}`);
+            } else {
+                await ctx.reply(`Failed to shorten URL: ${result.error}`);
+            }
+
+            delete ctx.session.pendingUrl;
+            delete ctx.session.awaitingAlias;
+        }
+    }, { suppress: true });
 }

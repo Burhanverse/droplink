@@ -2,7 +2,6 @@ export function isValidUrl(string) {
     try {
         const url = new URL(string);
 
-        // Don't allow shortening URLs from droplink.co itself
         if (url.hostname === 'droplink.co' || url.hostname.endsWith('.droplink.co')) {
             return false;
         }
