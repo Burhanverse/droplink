@@ -27,8 +27,15 @@ async function startBot() {
         // Register commands
         registerCommands(bot);
 
+        // Catch bot errors
+        bot.catch((err) => {
+            console.error('Bot error occurred:', err);
+        });
+
         // Start the bot
-        await bot.start();
+        await bot.start({
+            drop_pending_updates: true
+        });
         console.log('Bot started successfully!');
     } catch (error) {
         console.error('Failed to start bot:', error);

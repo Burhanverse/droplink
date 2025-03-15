@@ -43,7 +43,6 @@ export function registerCommands(bot) {
         }
     });
 
-    // Handle URL messages
     bot.on('message:text', async (ctx) => {
         if (ctx.state.detectedUrl) {
             if (!ctx.state.apiKey) {
@@ -52,10 +51,12 @@ export function registerCommands(bot) {
 
             const url = ctx.state.detectedUrl;
 
-            // Ask user if they want a custom alias
+            if (!isValidUrl(url)) {
+                return ctx.reply('Invalid URL detected. Please try again.');
+            }
+
             await ctx.reply('Do you want to add a custom alias? Reply with the alias or "no".');
 
-            // Store the URL in session for later use
             ctx.session.pendingUrl = url;
         } else if (ctx.session?.pendingUrl) {
             // Handle alias response

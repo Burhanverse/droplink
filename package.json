@@ -1,13 +1,13 @@
 {
   "name": "droplinks",
-  "version": "1.0.0",
-  "main": "index.js",
+  "version": "0.1",
+  "main": "bot.mjs",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "npm install && node bot.mjs"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "burhanverse",
+  "license": "MIT",
   "description": "",
   "dependencies": {
     "dotenv": "^16.4.7",

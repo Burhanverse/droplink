@@ -3,14 +3,26 @@ import { extractUrls } from './utils.mjs';
 
 export function authMiddleware() {
     return async (ctx, next) => {
-        const userId = ctx.from.id;
-        ctx.state.apiKey = await getApiKey(userId);
+        if (!ctx.state) {
+            ctx.state = {};
+        }
+
+        if (ctx.from) {
+            const userId = ctx.from.id;
+            ctx.state.apiKey = await getApiKey(userId);
+        } else {
+            ctx.state.apiKey = null;
+        }
         await next();
     };
 }
 
 export function urlDetectionMiddleware() {
     return async (ctx, next) => {
+        if (!ctx.state) {
+            ctx.state = {};
+        }
+
         if (ctx.message?.text && !ctx.message.text.startsWith('/')) {
             const urls = extractUrls(ctx.message.text);
             if (urls.length > 0) {
