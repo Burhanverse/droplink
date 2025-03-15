@@ -1,7 +1,7 @@
 import { Bot, session } from 'grammy';
 import { connectToDatabase } from './ext/db.mjs';
-import { authMiddleware, urlDetectionMiddleware, handleBotError } from './ext/middleware.mjs';
 import { registerCommands } from './ext/commands.mjs';
+import { authMiddleware, urlDetectionMiddleware, handleBotError, privateChatsOnlyMiddleware } from './ext/middleware.mjs';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -16,14 +16,11 @@ async function startBot() {
             initial: () => ({})
         }));
 
+        bot.use(privateChatsOnlyMiddleware());
         bot.use(authMiddleware());
         bot.use(urlDetectionMiddleware());
 
         registerCommands(bot);
-
-        bot.catch((err) => {
-            console.error('Bot error occurred:', err);
-        });
 
         bot.catch(handleBotError);
 

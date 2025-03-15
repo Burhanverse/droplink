@@ -2,6 +2,18 @@ import { getApiKey } from './db.mjs';
 import { extractUrls } from './utils.mjs';
 import { deleteApiKey } from './db.mjs';
 
+export function privateChatsOnlyMiddleware() {
+    return async (ctx, next) => {
+        if (ctx.chat?.type === 'private') {
+            await next();
+        } else {
+            if (ctx.message && !ctx.message?.text?.startsWith('/')) {
+                await ctx.reply("I only work in private chats. Please message me directly.");
+            }
+        }
+    };
+}
+
 export function authMiddleware() {
     return async (ctx, next) => {
         if (!ctx.state) {
