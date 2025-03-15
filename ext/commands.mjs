@@ -1,10 +1,12 @@
-import { saveApiKey, deleteApiKey } from './db.mjs';
+import { saveApiKey, deleteApiKey, isApiKeyUsed } from './db.mjs';
 import { shortenUrl } from './api.mjs';
 import { isValidUrl } from './utils.mjs';
 
 export function registerCommands(bot) {
     bot.command('start', async (ctx) => {
-        await ctx.reply('Welcome to DropLink Shortener Bot!\n\nCommands:\n/login your_api_key - Set your DropLink API key\n/logout - Remove your API key\n\nOr just send any URL to shorten it!');
+        await ctx.reply('Welcome to DropLink Shortener Bot!\n\n*You must login with your own API key to use this bot*\n\nCommands:\n/login your_api_key - Set your DropLink API key\n/logout - Remove your API key\n\nAfter logging in, just send any URL to shorten it!', {
+            parse_mode: "Markdown"
+        });
     });
 
     bot.command('login', async (ctx) => {
@@ -19,6 +21,11 @@ export function registerCommands(bot) {
         const userId = ctx.from.id;
 
         try {
+            const isUsed = await isApiKeyUsed(apiKey, userId);
+            if (isUsed) {
+                return ctx.reply('This API key is already being used by another user. Please provide a different API key.');
+            }
+
             await saveApiKey(userId, apiKey);
             await ctx.reply('API key saved successfully! You can now start shortening URLs.');
         } catch (error) {
@@ -47,7 +54,7 @@ export function registerCommands(bot) {
     bot.on('message:text', async (ctx) => {
         if (ctx.state.detectedUrl) {
             if (!ctx.state.apiKey) {
-                return ctx.reply('Please set your API key first using /login your_api_key');
+                return ctx.reply('⚠️ You need to set your API key first using /login your_api_key before shortening URLs.');
             }
 
             const url = ctx.state.detectedUrl;

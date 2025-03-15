@@ -1,7 +1,6 @@
 import { MongoClient } from 'mongodb';
 import dotenv from 'dotenv';
 
-// Ensure environment variables are loaded
 dotenv.config();
 
 const uri = process.env.MONGODB_URI;
@@ -10,7 +9,6 @@ let db;
 
 export async function connectToDatabase() {
     try {
-        // Check if MongoDB URI is properly set
         if (!uri) {
             throw new Error('MONGODB_URI environment variable is not set');
         }
@@ -57,4 +55,16 @@ export async function deleteApiKey(userId) {
     );
 
     return result.modifiedCount > 0;
+}
+
+export async function isApiKeyUsed(apiKey, currentUserId) {
+    if (!db) await connectToDatabase();
+    const users = db.collection('users');
+
+    const existingUser = await users.findOne({
+        apiKey: apiKey,
+        userId: { $ne: currentUserId }
+    });
+
+    return !!existingUser;
 }

@@ -23,3 +23,19 @@ export async function shortenUrl(apiKey, url, alias = null) {
         return { success: false, error: 'Failed to connect to DropLink API' };
     }
 }
+
+// Validation function
+export async function validateApiKey(apiKey) {
+    try {
+        const testUrl = 'https://example.com';
+        const apiUrl = `${BASE_URL}?api=${apiKey}&url=${encodeURIComponent(testUrl)}`;
+
+        const response = await fetch(apiUrl);
+        const data = await response.json();
+
+        return data.status === 'success';
+    } catch (error) {
+        console.error('API Validation Error:', error);
+        return false;
+    }
+}
