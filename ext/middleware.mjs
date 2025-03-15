@@ -1,5 +1,6 @@
 import { getApiKey } from './db.mjs';
 import { extractUrls } from './utils.mjs';
+import { deleteApiKey } from './db.mjs';
 
 export function authMiddleware() {
     return async (ctx, next) => {
@@ -31,4 +32,30 @@ export function urlDetectionMiddleware() {
         }
         await next();
     };
+}
+
+// Handle bot errors including blocked users
+export function handleBotError(err) {
+    const ctx = err.ctx;
+
+    // Check if error is related to user blocking the bot
+    if (err.error?.description &&
+        (err.error.description.includes("bot was blocked by the user") ||
+            err.error.description.includes("user is deactivated") ||
+            err.error.description.includes("chat not found") ||
+            err.error.description.includes("PEER_ID_INVALID"))) {
+
+        // Extract user ID from context if available
+        const userId = ctx?.from?.id;
+
+        if (userId) {
+            // Remove user's data from database
+            console.log(`User ${userId} blocked the bot. Removing from database...`);
+            deleteApiKey(userId).catch(e => {
+                console.error(`Failed to remove blocked user ${userId} from database:`, e);
+            });
+        }
+    }
+
+    console.error(`Bot error occurred: ${err.error.description || err.message}`);
 }
