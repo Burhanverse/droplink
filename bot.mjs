@@ -16,6 +16,12 @@ async function startBot() {
             initial: () => ({})
         }));
 
+        await bot.api.setMyCommands([
+            { command: "start", description: "Start the bot..." },
+            { command: "login", description: "Set your droplink api key..." },
+            { command: "logout", description: "Delete your api key from the bot database..." },
+        ]);
+
         bot.use(privateChatsOnlyMiddleware());
         bot.use(authMiddleware());
         bot.use(urlDetectionMiddleware());
