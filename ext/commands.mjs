@@ -4,7 +4,7 @@ import { isValidUrl } from './utils.mjs';
 
 export function registerCommands(bot) {
     bot.command('start', async (ctx) => {
-        await ctx.reply('Welcome to DropLink Shortener Bot!\n\n*You must login with your own API key to use this bot*\n\nCommands:\n/login your_api_key - Set your DropLink API key\n/logout - Remove your API key\n\nAfter logging in, just send any URL to shorten it!', {
+        await ctx.reply('*Welcome to DropLink Shortener Bot*!\n\n*You must login with your own API key to use this bot*\n*Commands:*\n`/login` your_api_key - Set your DropLink API key\n`/logout` - Remove your API key\n\nAfter logging in, just send any URL to shorten it!', {
             parse_mode: "Markdown"
         });
     });
