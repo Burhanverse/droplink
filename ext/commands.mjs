@@ -14,23 +14,40 @@ export function registerCommands(bot) {
         const parts = text.split(' ');
 
         if (parts.length !== 2) {
-            return ctx.reply('Please provide your API key: /login your_api_key');
+            return ctx.reply('<b>Please provide your API key:</b> /login your_api_key', {
+                parse_mode: "HTML"
+            });
         }
 
         const apiKey = parts[1].trim();
         const userId = ctx.from.id;
 
         try {
+            // Check if user already has an API key
+            const existingKey = await getApiKey(userId);
+            if (existingKey) {
+                return ctx.reply('<b>⚠️ You already have an API key saved.</b>\n\nPlease use /logout first to remove your existing API key before setting a new one.', {
+                    parse_mode: "HTML"
+                });
+            }
+
+            // Check if API key is used by another user
             const isUsed = await isApiKeyUsed(apiKey, userId);
             if (isUsed) {
-                return ctx.reply('This API key is already being used by another user. Please provide a different API key.');
+                return ctx.reply('<b>⚠️ This API key is already being used by another user.</b>\n\nPlease provide a different API key.', {
+                    parse_mode: "HTML"
+                });
             }
 
             await saveApiKey(userId, apiKey);
-            await ctx.reply('API key saved successfully! You can now start shortening URLs.');
+            await ctx.reply('<b>✅ API key saved successfully!</b>\n\nYou can now start shortening URLs.', {
+                parse_mode: "HTML"
+            });
         } catch (error) {
             console.error('Error saving API key:', error);
-            await ctx.reply('Failed to save API key. Please try again later.');
+            await ctx.reply('<b>❌ Failed to save API key.</b>\n\nPlease try again later.', {
+                parse_mode: "HTML"
+            });
         }
     });
 
